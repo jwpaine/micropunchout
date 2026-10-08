@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Session {{ session.id }} · {{ vendor.name }} · Punchout{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="/admin/vendors/{{ vendor.vendor_id }}">← {{ vendor.name }}</a></p>
+  <h1>Punchout session {{ session.id }}</h1>
+  <dl>
+    <dt>Status</dt><dd><span class="badge{% if session.status == 'returned' %} ok{% endif %}">{{ session.status }}</span></dd>
+    <dt>Buyer</dt><dd>{{ connection.name if connection else "?" }}</dd>
+    <dt>User</dt><dd>{{ session.user_name }}{% if session.user_email %} <span class="muted">&lt;{{ session.user_email }}&gt;</span>{% endif %}{% if session.user_external_id %} <span class="muted small">id {{ session.user_external_id }}</span>{% endif %}</dd>
+    <dt>Operation</dt><dd>{{ session.operation }}</dd>
+    <dt>Buyer cookie</dt><dd><code>{{ session.buyer_cookie or "—" }}</code></dd>
+    <dt>Return URL</dt><dd><code>{{ session.browser_form_post_url }}</code></dd>
+    {% if session.ship_to_id %}<dt>Ship to</dt><dd>{{ session.ship_to_id }}</dd>{% endif %}
+    <dt>Created</dt><dd>{{ session.created_at }}</dd>
+    <dt>Started</dt><dd>{{ session.started_at or "—" }}</dd>
+    <dt>Returned</dt><dd>{{ session.returned_at or "—" }}</dd>
+  </dl>
+
+  <h2>Mapped fields</h2>
+  <pre>{{ fields }}</pre>
+
+  <h2>Cart</h2>
+  {% if lines %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>SKU</th><th>Item</th><th>Qty</th><th class="num">Line total</th></tr></thead>
+    <tbody>
+      {% for l in lines %}
+      <tr><td><code>{{ l.sku }}</code></td><td>{{ l.name }}</td><td>{{ l.quantity }}</td><td class="num">{{ l.line_total }} {{ l.currency }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">Empty.</p>{% endif %}
+
+  <h2>Cart sent to procurement (PunchOutOrderMessage)</h2>
+  {% for m in order_messages %}
+  <p class="muted small">{{ m.created_at }} · {{ m.line_count }} line{{ "" if m.line_count == 1 else "s" }} · total {{ m.total }} {{ m.currency }} · <code>{{ m.payload_id }}</code></p>
+  <pre>{{ m.pretty }}</pre>
+  {% else %}<p class="muted">Not returned yet.</p>{% endfor %}
+
+  <h2>Setup request (as received)</h2>
+  <pre>{{ raw_request }}</pre>
+</div>
+{% endblock %}

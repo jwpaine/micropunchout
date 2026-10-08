@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}New vendor · Punchout{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>New vendor</h1>
+  <form method="post" action="/admin/vendors">
+    <label for="name">Name</label>
+    <input id="name" name="name" type="text" maxlength="200" value="{{ name }}" required autofocus>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <p class="muted">A vendor ID and shared secret will be generated.</p>
+    <button type="submit">Create vendor</button>
+  </form>
+</div>
+{% endblock %}

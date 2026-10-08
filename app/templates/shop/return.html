@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Returning to procurement…{% endblock %}
+{% block header %}<span class="brand">Returning to procurement…</span>{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <p>Sending your cart back to your procurement system…</p>
+  <form id="return-form" method="post" action="{{ action }}"{% if target and target != "_self" %} target="{{ target }}"{% endif %}>
+    <input type="hidden" name="{{ field }}" value="{{ payload }}">
+    <noscript><button type="submit">Continue</button></noscript>
+  </form>
+</div>
+<script>document.getElementById("return-form").submit();</script>
+{% endblock %}

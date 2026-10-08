@@ -1,0 +1,21 @@
+sku,name,unit_price,currency,uom,description,unspsc,manufacturer_name,manufacturer_part_id,image_url,lead_time_days,active
+PAP-8511-WH,"Copy paper, 8.5 x 11 in, white",54.99,USD,CS,"20 lb, 92 brightness. 10 reams per case, 500 sheets per ream.",14111507,Hammermill,105007,,2,yes
+PAP-8514-WH,"Copy paper, 8.5 x 14 in, white",69.50,USD,CS,"20 lb legal size. 10 reams per case.",14111507,Hammermill,105015,,3,yes
+PEN-BP-BLK12,"Ballpoint pen, medium, black (12 pack)",8.49,USD,PK,"1.0 mm medium point, retractable.",44121701,Pilot,32011,,2,yes
+PEN-BP-BLU12,"Ballpoint pen, medium, blue (12 pack)",8.49,USD,PK,"1.0 mm medium point, retractable.",44121701,Pilot,32012,,2,yes
+PCL-HB2-24,"Wooden pencil, #2 HB (24 pack)",6.25,USD,PK,Pre-sharpened with latex-free eraser.,44121706,Dixon,13924,,2,yes
+MKR-DRY-4,"Dry erase marker, chisel tip, assorted (4 pack)",7.99,USD,PK,"Low odor. Black, blue, red, green.",44121708,Expo,80174,,2,yes
+CLP-STD-1000,"Paper clips, standard size (10 boxes of 100)",4.75,USD,PK,Smooth finish steel.,44122016,ACCO,72380,,2,yes
+STP-DESK-BLK,"Desktop stapler, full strip, black",18.99,USD,EA,"20-sheet capacity, includes 1,000 staples.",44121615,Swingline,S7074711,,3,yes
+SCS-8IN,"Scissors, 8 in, straight handle",5.29,USD,EA,Stainless steel blades.,44121618,Fiskars,1445-1001,,3,yes
+GLV-NIT-L100,"Nitrile exam gloves, large (box of 100)",14.90,USD,BX,"Powder-free, 4 mil, blue.",46181504,Ansell,92-675-L,,4,yes
+GLV-NIT-M100,"Nitrile exam gloves, medium (box of 100)",14.90,USD,BX,"Powder-free, 4 mil, blue.",46181504,Ansell,92-675-M,,4,yes
+SAF-GLS-CLR,"Safety glasses, clear anti-fog lens",6.80,USD,EA,ANSI Z87.1+ rated. Wraparound frame.,46181804,3M,SF201AF,,5,yes
+BAT-AA-24,"Alkaline batteries, AA (24 pack)",21.49,USD,PK,Long-lasting alkaline cells.,26111702,Duracell,MN1500B24,,2,yes
+BAT-9V-4,"Alkaline batteries, 9V (4 pack)",15.99,USD,PK,,26111702,Duracell,MN1604B4,,2,yes
+MSE-WL-BLK,"Wireless mouse, black",24.99,USD,EA,"2.4 GHz USB receiver, 12-month battery life.",43211708,Logitech,910-002225,,5,yes
+SDR-SET-6,"Screwdriver set, 6 piece",29.95,USD,ST,"3 slotted, 3 Phillips. Cushion-grip handles.",27111701,Stanley,STHT60075,,7,yes
+TOW-MF-12,"Microfiber cleaning cloths (12 pack)",12.49,USD,PK,"16 x 16 in, lint-free, washable.",,Generic,,,3,yes
+TRB-33G-100,"Trash bags, 33 gal, black (100 count)",32.00,USD,BX,1.2 mil. Drawstring closure.,,Glad,78952,,4,yes
+CUP-12OZ-50,"Paper hot cups, 12 oz (sleeve of 50)",6.15,USD,PK,Insulated double wall.,,Dart,12J16,,14,yes
+CAL-DESK-2026,"Desk calendar 2026, 22 x 17 in",9.99,USD,EA,Discontinued; replaced by 2027 edition.,44112004,At-A-Glance,SK24-00,,,no

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Shoppers · {{ vendor.name }} · Punchout{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="/admin/vendors/{{ vendor.vendor_id }}">← {{ vendor.name }}</a></p>
+  <h1>Shoppers</h1>
+  <p class="muted">Accounts are created or updated from the mapped setup request fields each time someone punches out.</p>
+  {% if shoppers %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Shopper</th><th>Buyer</th><th>Other fields</th><th>Punchouts</th><th>Last punchout</th></tr></thead>
+    <tbody>
+      {% for s in shoppers %}
+      <tr>
+        <td>{{ s.name or s.email or s.external_id }}<br><span class="muted small">id {{ s.external_id }}{% if s.email %} · {{ s.email }}{% endif %}</span></td>
+        <td>{{ s.connection_name }}</td>
+        <td>{% for k, v in s.attributes.items() if v %}<code>{{ k }}</code> {{ v }}<br>{% else %}<span class="muted">—</span>{% endfor %}</td>
+        <td>{{ s.session_count }}</td>
+        <td class="muted">{{ s.last_punchout_at[:16] | replace("T", " ") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">No shoppers yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

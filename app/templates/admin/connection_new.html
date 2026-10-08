@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}New buyer connection · {{ vendor.name }} · Punchout{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <p><a href="/admin/vendors/{{ vendor.vendor_id }}">← {{ vendor.name }}</a></p>
+  <h1>New buyer connection</h1>
+  <p class="muted">A buyer organization that will punch out to {{ vendor.name }}. It's matched by the
+    <code>From</code> credential in their setup requests.</p>
+  <form method="post" action="/admin/vendors/{{ vendor.vendor_id }}/connections">
+    <label for="name">Buyer name</label>
+    <input id="name" name="name" type="text" maxlength="200" value="{{ form.name or '' }}" placeholder="Acme Corp" required autofocus>
+    <label for="from_domain">Credential domain</label>
+    <input id="from_domain" name="from_domain" type="text" maxlength="200" value="{{ form.from_domain or '' }}" required>
+    <p class="muted small" style="margin: 4px 0 0">Usually <code>NetworkID</code> for Ariba; Coupa and others often use <code>DUNS</code> or a custom value.</p>
+    <label for="from_identity">Credential identity</label>
+    <input id="from_identity" name="from_identity" type="text" maxlength="200" value="{{ form.from_identity or '' }}" placeholder="AN01000000001" required>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <button type="submit">Add connection</button>
+  </form>
+</div>
+{% endblock %}

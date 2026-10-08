@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}{{ vendor.name }} · Punchout{% endblock %}
+{% block content %}
+{% if new_secret %}
+<div class="notice" role="status">
+  <strong>Shared secret</strong>
+  <p class="muted" style="margin: 4px 0 0">Copy it now. It won't be shown again; if it's lost, rotate it.</p>
+  <code id="secret">{{ new_secret }}</code>
+  <button type="button" class="secondary" data-copy="secret">Copy</button>
+</div>
+{% endif %}
+<div class="card">
+  <p><a href="/admin/vendors">← Vendors</a></p>
+  <h1>{{ vendor.name }}</h1>
+  <dl>
+    <dt>Vendor ID</dt>
+    <dd><code>{{ vendor.vendor_id }}</code></dd>
+    <dt>Punchout URL</dt>
+    <dd><code id="url">{{ punchout_url }}</code> <button type="button" class="secondary" data-copy="url" style="margin: 0; padding: 2px 8px">Copy</button></dd>
+    <dt>Shared secret</dt>
+    <dd><code>••••{{ vendor.secret_last4 }}</code> <span class="muted">set {{ vendor.secret_rotated_at[:10] }}</span></dd>
+    <dt>Shoppers</dt>
+    <dd><a href="/admin/vendors/{{ vendor.vendor_id }}/shoppers">{{ shopper_count }} shopper{{ "" if shopper_count == 1 else "s" }}</a></dd>
+    <dt>Products</dt>
+    <dd><a href="/admin/vendors/{{ vendor.vendor_id }}/products">{{ product_count }} product{{ "" if product_count == 1 else "s" }}</a></dd>
+    <dt>Created</dt>
+    <dd>{{ vendor.created_at[:10] }}</dd>
+  </dl>
+  <form method="post" action="/admin/vendors/{{ vendor.vendor_id }}/rotate-secret"
+        onsubmit="return confirm('Rotate the shared secret? Buyers using the old secret will stop working until they update it.')">
+    <button type="submit" class="secondary">Rotate secret</button>
+  </form>
+
+  {% set base_settings = "/admin/vendors/" ~ vendor.vendor_id ~ "/settings" %}
+  {% for key, meta in setting_sections.items() %}
+  <div class="row" style="margin-top: 28px">
+    <h2 style="margin: 0">{{ meta.title }}</h2>
+    <a href="{{ base_settings }}/{{ key }}">Edit</a>
+  </div>
+  <div class="table-wrap">
+  <table>
+    {% if key == "general" %}
+    <thead><tr><th>Setting</th><th>Value</th><th>Source</th></tr></thead>
+    {% elif key == "posr" %}
+    <thead><tr><th>Field</th><th>From the setup request</th><th>Source</th></tr></thead>
+    {% else %}
+    <thead><tr><th>Cart element</th><th>From</th><th>Source</th></tr></thead>
+    {% endif %}
+    <tbody>
+      {% for s in settings if s.section == key %}
+      <tr{% if s.value is none and key != "general" %} class="inactive"{% endif %}>
+        <td><code>{{ s.field if key != "general" else s.path }}</code></td>
+        <td>
+          {% if key == "general" %}<code>{{ s.value | tojson }}</code>
+          {% elif s.value is none %}<span class="muted">switched off</span>
+          {% else %}{% for src in s.value["from"] %}<code>{{ src }}</code>{% if not loop.last %} <span class="muted">→</span> {% endif %}{% endfor %}{% if s.value.required %} <span class="badge">required</span>{% endif %}{% endif %}
+        </td>
+        <td>{% if s.source != "default" %}<span class="badge ok">{{ s.source }}</span>{% else %}<span class="muted small">default</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endfor %}
+
+  <div class="row" style="margin-top: 28px">
+    <h2 style="margin: 0">Buyer connections</h2>
+    <span>
+      <a href="/admin/vendors/{{ vendor.vendor_id }}/test">Test punchout</a>
+      &nbsp;<a class="button" href="/admin/vendors/{{ vendor.vendor_id }}/connections/new">New connection</a>
+    </span>
+  </div>
+  {% if connections %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Buyer</th><th>From credential</th><th>Status</th><th>Settings</th><th></th></tr></thead>
+    <tbody>
+      {% for c in connections %}
+      <tr{% if not c.active %} class="inactive"{% endif %}>
+        <td>{{ c.name }}</td>
+        <td><code>{{ c.from_domain }}</code> <code>{{ c.from_identity }}</code></td>
+        <td>{{ "Active" if c.active else "Disabled" }}</td>
+        <td>
+          {% set cbase = "/admin/vendors/" ~ vendor.vendor_id ~ "/connections/" ~ c.id ~ "/settings" %}
+          <a href="{{ cbase }}/general">General</a> ·
+          <a href="{{ cbase }}/posr">POSR</a>{% if c.config.posr %} <span class="badge ok">custom</span>{% endif %} ·
+          <a href="{{ cbase }}/poom">POOM</a>{% if c.config.poom %} <span class="badge ok">custom</span>{% endif %}
+          {% if c.config.punchout or c.config["return"] %}<br><span class="badge ok">custom general</span>{% endif %}
+        </td>
+        <td>
+          <form method="post" action="/admin/vendors/{{ vendor.vendor_id }}/connections/{{ c.id }}/active" class="inline">
+            <input type="hidden" name="active" value="{{ 'false' if c.active else 'true' }}">
+            <button type="submit" class="secondary">{{ "Disable" if c.active else "Enable" }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">No buyers yet. Setup requests are rejected until the buyer's <code>From</code> credential is added here.</p>
+  {% endif %}
+
+  <h2>Recent punchout sessions</h2>
+  {% if sessions %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Started</th><th>Buyer</th><th>User</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for s in sessions %}
+      <tr>
+        <td><a href="/admin/vendors/{{ vendor.vendor_id }}/sessions/{{ s.id }}">{{ s.created_at[:16] | replace("T", " ") }}</a></td>
+        <td>{{ s.connection_name }}</td>
+        <td>{{ s.user_name or s.user_email }}</td>
+        <td><span class="badge{% if s.status == 'returned' %} ok{% endif %}">{{ s.status }}</span>{% if s.operation != "create" %} <span class="muted small">{{ s.operation }}</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">None yet.</p>
+  {% endif %}
+</div>
+<script>
+  document.querySelectorAll("[data-copy]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const text = document.getElementById(btn.dataset.copy).textContent;
+      try { await navigator.clipboard.writeText(text); btn.textContent = "Copied"; }
+      catch { btn.textContent = "Select and copy manually"; }
+      setTimeout(() => (btn.textContent = "Copy"), 2000);
+    });
+  });
+</script>
+{% endblock %}

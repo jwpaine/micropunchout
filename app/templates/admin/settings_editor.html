@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ sections[section].title }} · {{ heading }} · Punchout{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="{{ back_url }}">← {{ back_label }}</a></p>
+  <h1>Settings · {{ heading }}</h1>
+
+  <nav class="tabs" aria-label="Settings sections">
+    {% for key, meta in sections.items() %}
+    <a href="{{ settings_url }}/{{ key }}"{% if key == section %} aria-current="page"{% endif %}>{{ meta.title }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if section == "general" %}
+  <p class="muted">Where buyers reach the punchout and how the cart is posted back.</p>
+  {% elif section == "posr" %}
+  <p class="muted"><strong>Inbound.</strong> Maps the PunchOutSetupRequest from the procurement system into named fields.
+    They identify the shopper, create or update the shopper account, and are stored on the session for use in the cart.</p>
+  {% else %}
+  <p class="muted"><strong>Outbound.</strong> Maps each cart item into the PunchOutOrderMessage sent back to the procurement system.
+    SKU, quantity, price, currency and unit of measure are always sent and can't be mapped.</p>
+  {% endif %}
+
+  {% if request.query_params.get("saved") and not error %}<div class="notice" role="status">Saved.</div>{% endif %}
+
+  <h2>Settings in effect</h2>
+  <div class="table-wrap">
+  <table>
+    {% if section == "general" %}
+    <thead><tr><th>Setting</th><th>Value</th><th>Source</th></tr></thead>
+    <tbody>
+      {% for s in settings %}
+      <tr>
+        <td><code>{{ s.path }}</code><br><span class="muted small">{{ s.description }}</span></td>
+        <td><code>{{ s.value | tojson }}</code></td>
+        <td>{% if s.source != "default" %}<span class="badge ok">{{ s.source }}</span>{% else %}<span class="muted small">default</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    {% else %}
+    <thead><tr><th>{{ "Field" if section == "posr" else "Cart element" }}</th><th>Sources (first with a value wins)</th><th>Options</th><th>Source</th></tr></thead>
+    <tbody>
+      {% for s in settings %}
+      <tr{% if s.value is none %} class="inactive"{% endif %}>
+        <td><code>{{ s.field }}</code><br><span class="muted small">{{ s.description }}</span></td>
+        {% if s.value is none %}
+        <td colspan="2" class="muted">Switched off</td>
+        {% else %}
+        <td>{% for src in s.value["from"] %}<code>{{ src }}</code><br>{% endfor %}</td>
+        <td class="small">
+          {% if s.value.required %}<span class="badge">required</span><br>{% endif %}
+          {% if s.value.map %}map {{ s.value.map | length }} value{{ "" if s.value.map | length == 1 else "s" }}<br>{% endif %}
+          {% if s.value.transform %}{{ s.value.transform | join(", ") }}<br>{% endif %}
+          {% if s.value.separator %}separator <code>{{ s.value.separator | tojson }}</code><br>{% endif %}
+          {% if s.value.default %}default <code>{{ s.value.default }}</code>{% endif %}
+        </td>
+        {% endif %}
+        <td>{% if s.source != "default" %}<span class="badge ok">{{ s.source }}</span>{% else %}<span class="muted small">default</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    {% endif %}
+  </table>
+  </div>
+
+  <h2>Edit</h2>
+  <p class="muted">Enter only what differs, as JSON. Anything left out comes from the layer below
+    (defaults ← vendor ← connection).
+    {% if section != "general" %}A partial rule merges into the one below it; set a field to <code>null</code> to switch it off.{% endif %}</p>
+  <form method="post" action="{{ settings_url }}/{{ section }}">
+    <label for="config">{{ sections[section].title }} overrides</label>
+    <textarea id="config" name="config" rows="14" spellcheck="false">{{ text }}</textarea>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <button type="submit">Save {{ sections[section].title | lower }}</button>
+  </form>
+
+  <h2>Reference</h2>
+  {% if section == "general" %}
+  <p class="muted small">Example: <code>{"punchout": {"base_url": "https://punchout.acme.com"}, "return": {"form_field": "cxml-base64", "target": "_top"}}</code></p>
+  {% else %}
+<pre>{
+  "from": ["…", "…"],          // sources, tried in order; combine parts with " + "
+  "separator": " ",            // joins combined parts
+  "map": {"from": "to"},       // lookup table; unmatched values pass through
+  "transform": ["trim", "lower", "upper", "truncate:100"],
+  "default": "",               // used if every source is empty
+  "required": false            // {{ "reject the punchout (cXML 400) if empty" if section == "posr" else "block checkout if empty" }}
+}</pre>
+  {% if section == "posr" %}
+  <ul class="muted">
+    <li><code>extrinsic:&lt;Name&gt;</code>: an <code>&lt;Extrinsic name="Name"&gt;</code> in the setup request</li>
+    <li><code>contact:name</code>, <code>contact:email</code>: the <code>endUser</code> contact, else the first</li>
+    <li><code>shipto:address_id|name|street|city|state|postal_code|country</code></li>
+    <li><code>from:domain</code>, <code>from:identity</code>: the buyer's From credential</li>
+    <li><code>value:&lt;text&gt;</code>: a constant</li>
+  </ul>
+  <p class="muted">Field names are yours (lowercase, dotted). The app uses <code>user.external_id</code> (required; identifies the
+    shopper account), <code>user.email</code>, <code>user.name</code> and <code>ship_to.id</code>. Other fields are kept on the
+    session and shopper account, and can be sent back in the cart with <code>session:&lt;field&gt;</code>.</p>
+  <p class="muted small">Example: <code>{"user.email": {"transform": ["lower"]}, "cost_center": {"from": ["extrinsic:CostCenter"], "required": true},
+    "account.id": {"from": ["shipto:address_id"], "map": {"1000": "C-10442"}}}</code></p>
+  {% else %}
+  <ul class="muted">
+    <li><code>product:&lt;field&gt;</code>: sku, name, description, unit_price, currency, uom, unspsc, manufacturer_name,
+      manufacturer_part_id, lead_time_days</li>
+    <li><code>session:&lt;field&gt;</code>: a field mapped from the setup request (Setup request tab)</li>
+    <li><code>value:&lt;text&gt;</code>: a constant</li>
+  </ul>
+  <p class="muted">Cart elements: <code>item.description</code>, <code>item.supplier_part_aux_id</code>, <code>item.classification</code>,
+    <code>item.classification_domain</code>, <code>item.manufacturer_part_id</code>, <code>item.manufacturer_name</code>,
+    <code>item.lead_time</code>, and <code>item.extrinsic.&lt;Name&gt;</code> for line-level extrinsics (left out when empty).</p>
+  <p class="muted small">Example: <code>{"item.supplier_part_aux_id": {"from": ["product:sku"]}, "item.extrinsic.CostCenter": {"from": ["session:cost_center"]}}</code></p>
+  {% endif %}
+  {% endif %}
+
+  <details>
+    <summary class="muted">Defaults for this section</summary>
+    <pre>{{ defaults }}</pre>
+  </details>
+</div>
+{% endblock %}

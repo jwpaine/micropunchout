@@ -1,0 +1,53 @@
+{% extends "shop/base.html" %}
+{% block title %}{{ vendor_name }}{% endblock %}
+{% block content %}
+{% if added %}<div class="notice" role="status">Added to cart. <a href="{{ base }}/cart">View cart</a></div>{% endif %}
+<div class="card">
+  <div class="row">
+    <h1>Catalog</h1>
+    <a class="button" href="{{ base }}/cart">Cart{% if cart_count %} ({{ cart_count }}){% endif %}</a>
+  </div>
+  <form method="get" action="{{ base }}" class="search">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by SKU, name or part number" aria-label="Search">
+    <button type="submit" class="secondary">Search</button>
+  </form>
+  {% if products %}
+  <ul class="products">
+    {% for p in products %}
+    <li class="product">
+      {% if p.image_url %}<img src="{{ p.image_url }}" alt="" loading="lazy">{% else %}<div class="noimg"></div>{% endif %}
+      <div>
+        <div>{{ p.name }}</div>
+        <div class="muted small">SKU {{ p.sku }}{% if p.manufacturer_part_id %} · {{ p.manufacturer_name }} {{ p.manufacturer_part_id }}{% endif %}{% if p.lead_time_days is not none %} · ships in {{ p.lead_time_days }} day{{ "" if p.lead_time_days == 1 else "s" }}{% endif %}</div>
+        {% if p.description %}<div class="muted small">{{ p.description }}</div>{% endif %}
+        <div class="price">{{ p.unit_price }} {{ p.currency }} <span class="muted small">/ {{ p.uom }}</span></div>
+      </div>
+      {% if not session.read_only %}
+      <form method="post" action="{{ base }}/cart/add">
+        <input type="hidden" name="product_id" value="{{ p.id }}">
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="page" value="{{ page }}">
+        <input type="number" name="quantity" value="1" min="1" max="1000000" aria-label="Quantity for {{ p.sku }}">
+        <button type="submit">Add</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <div class="row pager">
+    <span class="muted">{{ total }} item{{ "" if total == 1 else "s" }}{% if q %} matching “{{ q }}”{% endif %}</span>
+    {% if pages > 1 %}
+    <span>
+      {% if page > 1 %}<a href="{{ base }}?q={{ q | urlencode }}&page={{ page - 1 }}">← Prev</a>{% endif %}
+      <span class="muted">Page {{ page }} of {{ pages }}</span>
+      {% if page < pages %}<a href="{{ base }}?q={{ q | urlencode }}&page={{ page + 1 }}">Next →</a>{% endif %}
+    </span>
+    {% endif %}
+  </div>
+  {% elif q %}
+  <p class="muted">Nothing matches “{{ q }}”.</p>
+  {% else %}
+  <p class="muted">This catalog has no items yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

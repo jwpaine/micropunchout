@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Import products · {{ vendor.name }} · Punchout{% endblock %}
+{% block content %}
+{% if result %}
+<div class="notice" role="status">
+  <strong>Import complete.</strong>
+  {{ result.created }} created, {{ result.updated }} updated, {{ result.unchanged }} unchanged{% if deactivate_missing %}, {{ result.deactivated }} deactivated{% endif %}.
+  {% if parsed.ignored_columns %}<p class="muted" style="margin: 6px 0 0">Ignored columns: {{ parsed.ignored_columns | join(", ") }}</p>{% endif %}
+  <p style="margin: 8px 0 0"><a href="/admin/vendors/{{ vendor.vendor_id }}/products">View products</a></p>
+</div>
+{% elif parsed and parsed.errors %}
+<div class="notice error-box" role="alert">
+  <strong>Nothing was imported.</strong> Fix these problems and upload again:
+  <ul>{% for e in parsed.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+<div class="card">
+  <p><a href="/admin/vendors/{{ vendor.vendor_id }}/products">← Products</a></p>
+  <h1>Import products</h1>
+  <p class="muted">Upload a CSV. Rows are matched by SKU: new SKUs are added, existing ones updated.
+    Required columns: <code>sku</code>, <code>name</code>, <code>unit_price</code>.
+    <a href="/admin/vendors/{{ vendor.vendor_id }}/products/template.csv">Download template</a></p>
+  <form method="post" enctype="multipart/form-data">
+    <label for="file">CSV file</label>
+    <input id="file" name="file" type="file" accept=".csv,text/csv" required>
+    <label class="check"><input type="checkbox" name="deactivate_missing" value="true"{% if deactivate_missing %} checked{% endif %}>
+      Full sync: deactivate products that aren't in this file</label>
+    <button type="submit">Import</button>
+  </form>
+</div>
+{% endblock %}

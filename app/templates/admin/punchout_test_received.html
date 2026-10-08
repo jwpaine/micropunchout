@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Cart received · Punchout{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="/admin/vendors">← Vendors</a></p>
+  <h1>Cart received</h1>
+  <p class="muted">This is what the procurement system would receive.</p>
+  {% if error %}
+  <p class="error" role="alert">{{ error }}</p>
+  {% else %}
+  {% if lines %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>SKU</th><th>Description</th><th>Qty</th><th>UOM</th><th class="num">Unit price</th></tr></thead>
+    <tbody>
+      {% for l in lines %}
+      <tr><td><code>{{ l.sku }}</code></td><td>{{ l.description }}</td><td>{{ l.quantity }}</td><td>{{ l.uom }}</td><td class="num">{{ l.unit_price }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}<p class="muted">Empty cart (the shopper cancelled).</p>{% endif %}
+  {% if total %}<p style="text-align: right"><strong>Total: {{ total }}</strong></p>{% endif %}
+  {% endif %}
+  {% if raw %}<h2>PunchOutOrderMessage</h2><pre>{{ raw }}</pre>{% endif %}
+</div>
+{% endblock %}

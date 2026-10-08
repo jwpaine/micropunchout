@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h1>Welcome, {{ user.display_name }}</h1>
+  <p class="muted">You're signed in.</p>
+  {% if "admin" in user.roles %}<p><a href="/admin/vendors">Manage vendors</a></p>{% endif %}
+</div>
+{% endblock %}

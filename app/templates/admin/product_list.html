@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Products · {{ vendor.name }} · Punchout{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="/admin/vendors/{{ vendor.vendor_id }}">← {{ vendor.name }}</a></p>
+  <div class="row">
+    <h1>Products</h1>
+    <a class="button" href="/admin/vendors/{{ vendor.vendor_id }}/products/import">Import CSV</a>
+  </div>
+  <form method="get" class="search">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search SKU, name or manufacturer part" aria-label="Search products">
+    <button type="submit" class="secondary">Search</button>
+  </form>
+  {% if products %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>SKU</th><th>Name</th><th class="num">Price</th><th>UOM</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for p in products %}
+      <tr{% if not p.active %} class="inactive"{% endif %}>
+        <td><code>{{ p.sku }}</code></td>
+        <td>{{ p.name }}{% if p.manufacturer_part_id %}<br><span class="muted small">{{ p.manufacturer_name }} {{ p.manufacturer_part_id }}</span>{% endif %}</td>
+        <td class="num">{{ p.unit_price }} {{ p.currency }}</td>
+        <td>{{ p.uom }}</td>
+        <td>{{ "Active" if p.active else "Inactive" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="row pager">
+    <span class="muted">{{ total }} product{{ "" if total == 1 else "s" }}{% if q %} matching “{{ q }}”{% endif %}</span>
+    {% if pages > 1 %}
+    <span>
+      {% if page > 1 %}<a href="?q={{ q | urlencode }}&page={{ page - 1 }}">← Prev</a>{% endif %}
+      <span class="muted">Page {{ page }} of {{ pages }}</span>
+      {% if page < pages %}<a href="?q={{ q | urlencode }}&page={{ page + 1 }}">Next →</a>{% endif %}
+    </span>
+    {% endif %}
+  </div>
+  {% elif q %}
+  <p class="muted">No products match “{{ q }}”.</p>
+  {% else %}
+  <p class="muted">No products yet. <a href="/admin/vendors/{{ vendor.vendor_id }}/products/import">Import a CSV</a> to add some.</p>
+  {% endif %}
+</div>
+{% endblock %}

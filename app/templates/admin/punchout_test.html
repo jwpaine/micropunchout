@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Test punchout · {{ vendor.name }} · Punchout{% endblock %}
+{% block content %}
+{% if error %}
+<div class="notice error-box" role="alert">
+  <strong>Setup request was rejected: {{ error }}</strong>
+  {% if request_xml %}<h2>Request sent</h2><pre>{{ request_xml }}</pre>{% endif %}
+  {% if response_xml %}<h2>Response</h2><pre>{{ response_xml }}</pre>{% endif %}
+</div>
+{% endif %}
+<div class="card narrow">
+  <p><a href="/admin/vendors/{{ vendor.vendor_id }}">← {{ vendor.name }}</a></p>
+  <h1>Test punchout</h1>
+  {% if connections %}
+  <p class="muted">Acts as the buyer's procurement system: sends a setup request with the connection's credentials,
+    opens the catalog, and shows you the cart when you return it.</p>
+  <form method="post" action="/admin/vendors/{{ vendor.vendor_id }}/test">
+    <label for="connection_pk">Buyer connection</label>
+    <select id="connection_pk" name="connection_pk">
+      {% for c in connections %}<option value="{{ c.id }}"{% if form.connection_pk == c.id %} selected{% endif %}>{{ c.name }} ({{ c.from_domain }} {{ c.from_identity }})</option>{% endfor %}
+    </select>
+    <label for="shared_secret">Shared secret</label>
+    <input id="shared_secret" name="shared_secret" type="password" autocomplete="off" required>
+    <p class="muted small" style="margin: 4px 0 0">The vendor's secret (ends in {{ vendor.secret_last4 }}). If you no longer have it, rotate it on the vendor page.</p>
+    <label for="user_name">Shopper name</label>
+    <input id="user_name" name="user_name" type="text" value="{{ form.user_name or '' }}">
+    <label for="user_email">Shopper email</label>
+    <input id="user_email" name="user_email" type="text" value="{{ form.user_email or '' }}">
+    <button type="submit">Start punchout</button>
+  </form>
+  {% else %}
+  <p class="muted">Add a buyer connection first. <a href="/admin/vendors/{{ vendor.vendor_id }}/connections/new">New connection</a></p>
+  {% endif %}
+</div>
+{% endblock %}

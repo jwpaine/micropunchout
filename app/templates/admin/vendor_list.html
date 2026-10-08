@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Vendors · Punchout{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="row">
+    <h1>Vendors</h1>
+    <a class="button" href="/admin/vendors/new">New vendor</a>
+  </div>
+  {% if vendors %}
+  <table>
+    <thead><tr><th>Name</th><th>Vendor ID</th><th>Created</th></tr></thead>
+    <tbody>
+      {% for v in vendors %}
+      <tr>
+        <td><a href="/admin/vendors/{{ v.vendor_id }}">{{ v.name }}</a></td>
+        <td><code>{{ v.vendor_id }}</code></td>
+        <td class="muted">{{ v.created_at[:10] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No vendors yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
